@@ -1,0 +1,73 @@
+CC = nvcc
+
+SRC_DIR = src
+BUILD_DIR = build
+
+DEBUG_DIR = $(BUILD_DIR)/debug
+RELEASE_DIR = $(BUILD_DIR)/release
+INCLUDE_DIRS = .
+LIB_DIRS = .
+
+CFLAGS_COMMON = -std=c17
+CFLAGS_DEBUG = -g -DDEBUG
+CFLAGS_RELEASE = -Ofast
+
+LDFLAGS_COMMON =
+LDFLAGS_DEBUG =
+LDFLAGS_RELEASE =
+
+SRCS = $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/*.cu)
+OBJS_DEBUG = $(patsubst $(SRC_DIR)/%.c,$(DEBUG_DIR)/%.o,$(SRCS)) $(patsubst $(SRC_DIR)/%.cu,$(DEBUG_DIR)/%.o,$(SRCS))
+OBJS_RELEASE = $(patsubst $(SRC_DIR)/%.c,$(RELEASE_DIR)/%.o,$(SRCS)) $(patsubst $(SRC_DIR)/%.cu,$(RELEASE_DIR)/%.o,$(SRCS))
+
+TARGET = psearch
+
+TARGET_DEBUG = $(DEBUG_DIR)/$(TARGET)
+TARGET_RELEASE = $(RELEASE_DIR)/$(TARGET)
+
+.PHONY: build-all build-debug build-release clean
+
+build-all: build-debug build-release clean
+
+build-debug: $(TARGET_DEBUG)
+
+build-release: $(TARGET_RELEASE)
+
+$(TARGET_DEBUG): $(OBJS_DEBUG)
+	$(CC) $(CFLAGS_COMMON) $(CFLAGS_DEBUG) -o $@ $^ $(LDFLAGS_COMMON) $(LDFLAGS_DEBUG) -L$(LIB_DIRS)
+
+$(TARGET_RELEASE): $(OBJS_RELEASE)
+	$(CC) $(CFLAGS_COMMON) $(CFLAGS_RELEASE) -o $@ $^ $(LDFLAGS_COMMON) $(LDFLAGS_RELEASE) -L$(LIB_DIRS)
+
+$(DEBUG_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS_COMMON) $(CFLAGS_DEBUG) -c -o $@ $< -I$(INCLUDE_DIRS)
+
+$(RELEASE_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS_COMMON) $(CFLAGS_RELEASE) -c -o $@ $< -I$(INCLUDE_DIRS)
+
+$(DEBUG_DIR)/%.o: $(SRC_DIR)/%.cu
+	$(CC) $(CFLAGS_COMMON) $(CFLAGS_DEBUG) -c -o $@ $< -I$(INCLUDE_DIRS)
+
+$(RELEASE_DIR)/%.o: $(SRC_DIR)/%.cu
+	$(CC) $(CFLAGS_COMMON) $(CFLAGS_RELEASE) -c -o $@ $< -I$(INCLUDE_DIRS)
+
+$(OBJS_DEBUG): init-dirs
+
+$(OBJS_RELEASE): init-dirs
+
+init-dirs:
+	mkdir -p $(BUILD_DIR)
+	mkdir -p $(DEBUG_DIR)
+	mkdir -p $(RELEASE_DIR)
+
+clean:
+	rm $(DEBUG_DIR)/*.o $(RELEASE_DIR)/*.o
+
+clean-all:
+	rm -rf $(BUILD_DIR)
+
+run:
+	$(TARGET_RELEASE) $(ARGS)
+
+debug:
+	@lldb $(TARGET_DEBUG) $(ARGS)

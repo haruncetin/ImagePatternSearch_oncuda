@@ -1,0 +1,55 @@
+CC = clang
+NVCC = nvcc
+
+SRC_DIR = src
+BUILD_DIR = build
+
+RELEASE_DIR = $(BUILD_DIR)/release
+INCLUDE_DIRS = .
+LIB_DIRS = .
+
+CFLAGS_COMMON = -std=c17 -Wall
+NVCCFLAGS_COMMON = -std=c++17
+CFLAGS_RELEASE = -O3
+
+LDFLAGS_COMMON =
+LDFLAGS_RELEASE =
+
+C_FILES = $(wildcard $(SRC_DIR)/*.c)
+CU_FILES = $(wildcard $(SRC_DIR)/*.cu)
+
+OBJS_RELEASE = $(CU_FILES:$(SRC_DIR)/.cu=$(RELEASE_DIR)/.o) $(C_FILES:$(SRC_DIR)/.c=$(RELEASE_DIR)/.o)
+
+TARGET = psearch.exe
+
+TARGET_RELEASE = $(RELEASE_DIR)/$(TARGET)
+
+.PHONY: build-all build-release clean
+
+build-all: build-release clean
+
+build-release: $(TARGET_RELEASE)
+
+$(OBJS_RELEASE): init-dirs
+
+$(RELEASE_DIR)/%.o: $(SRC_DIR)/%.cu
+	$(NVCC) $(NVCCFLAGS_COMMON) $(CFLAGS_RELEASE) -c -o $@ $< -I$(INCLUDE_DIRS)
+
+$(RELEASE_DIR)/%.o: $(SRC_DIR)/%.c
+	$(CC) $(CFLAGS_COMMON) $(CFLAGS_RELEASE) -c -o $@ $< -I$(INCLUDE_DIRS)
+
+$(TARGET_RELEASE): $(OBJS_RELEASE)
+	$(NVCC) $(NVCCFLAGS_COMMON) $(CFLAGS_RELEASE) -o $@ $^ $(LDFLAGS_COMMON) $(LDFLAGS_RELEASE) -L$(LIB_DIRS)
+
+init-dirs:
+	$(shell mkdir $(BUILD_DIR) 2> nul)
+	$(shell mkdir $(subst /,\,$(RELEASE_DIR)) 2> nul)
+
+clean:
+	$(shell del $(subst /,\,$(RELEASE_DIR)\*.o) 2> nul)
+
+clean-all:
+	$(shell rmdir $(subst /,\,$(BUILD_DIR)) /s /q 2> nul)
+
+run:
+	$(TARGET_RELEASE) $(ARGS)
