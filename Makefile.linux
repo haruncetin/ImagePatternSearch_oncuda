@@ -10,15 +10,17 @@ LIB_DIRS = .
 
 CFLAGS_COMMON = -std=c17
 CFLAGS_DEBUG = -g -DDEBUG
-CFLAGS_RELEASE = -Ofast
+CFLAGS_RELEASE = -O3
 
 LDFLAGS_COMMON =
 LDFLAGS_DEBUG =
 LDFLAGS_RELEASE =
 
-SRCS = $(wildcard $(SRC_DIR)/*.c) $(wildcard $(SRC_DIR)/*.cu)
-OBJS_DEBUG = $(patsubst $(SRC_DIR)/%.c,$(DEBUG_DIR)/%.o,$(SRCS)) $(patsubst $(SRC_DIR)/%.cu,$(DEBUG_DIR)/%.o,$(SRCS))
-OBJS_RELEASE = $(patsubst $(SRC_DIR)/%.c,$(RELEASE_DIR)/%.o,$(SRCS)) $(patsubst $(SRC_DIR)/%.cu,$(RELEASE_DIR)/%.o,$(SRCS))
+C_FILES = $(wildcard $(SRC_DIR)/*.c)
+CU_FILES = $(wildcard $(SRC_DIR)/*.cu)
+
+OBJS_DEBUG = $(CU_FILES:$(SRC_DIR)/.cu=$(DEBUG_DIR)/.o) $(C_FILES:$(SRC_DIR)/.c=$(DEBUG_DIR)/.o)
+OBJS_RELEASE = $(CU_FILES:$(SRC_DIR)/.cu=$(RELEASE_DIR)/.o) $(C_FILES:$(SRC_DIR)/.c=$(RELEASE_DIR)/.o)
 
 TARGET = psearch
 
