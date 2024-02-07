@@ -43,7 +43,7 @@ __global__ void psearch_kernel(uint16_t *I, unsigned int N, uint16_t *P, unsigne
             printf("Found in LOWER TRIANGLE at row: %d, col: %d\n", i-kc, j-kc);
         }
     } else {
-        // Search for the pattern in the lower triangle of the image matrix
+        // Search for the pattern in the upper triangle of the image matrix
         int matchInUpperTriangle = check_pattern(I, N, P, K, i, j);
         if (matchInUpperTriangle) {
             printf("Found in UPPER TRIANGLE at row: %d, col: %d\n", i-kc, j-kc);
